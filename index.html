@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="description" content="自适应声学防空洞——智能动态噪音拦截系统，实时监听环境声音，在突发噪音瞬间自动提升掩蔽音量，守护你的专注与睡眠。">
+<meta name="keywords" content="白噪音,噪音拦截,自适应声音,睡眠辅助,专注助手,动态噪音防护,ASMR,声学防空洞">
+<meta name="theme-color" content="#020d1a">
+<title>自适应声学防空洞 | Adaptive Sonic Shelter</title>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"自适应声学防空洞","alternateName":["Adaptive Sonic Shelter","大众毁灭者","动态大众终结界"],"description":"智能动态噪音拦截，实时麦克风监听，突发噪音瞬间反击。","applicationCategory":"UtilitiesApplication","operatingSystem":["iOS","Android","Web"],"offers":{"@type":"Offer","price":"0","priceCurrency":"CNY"}}
+</script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+:root{
+  --bg:#020d1a;--panel:rgba(4,22,40,.92);--border:rgba(0,200,220,.14);
+  --c:#00e5ff;--c2:#00b4cc;--c3:#007a8c;
+  --am:#f5a623;--am2:#ffbe3d;
+  --gr:#00ff88;--rd:#ff3a3a;
+  --t1:#e0f7fa;--t2:#7ecfdc;--t3:#3d7a8a;
+  --r1:18px;--r2:11px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--t1);font-family:'Noto Sans SC',sans-serif}
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(ellipse 80% 50% at 50% 10%,rgba(0,70,110,.3),transparent 65%),
+  radial-gradient(ellipse 60% 40% at 20% 90%,rgba(0,30,70,.35),transparent 60%),
+  linear-gradient(180deg,#020d1a,#031220 50%,#020f1a);pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,220,255,.006) 2px,rgba(0,220,255,.006) 4px);pointer-events:none;z-index:1}
+
+.shell{position:relative;z-index:2;max-width:430px;margin:0 auto;height:100vh;display:flex;flex-direction:column}
+.pages{flex:1;overflow:hidden;position:relative}
+.page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(72px + var(--safe-b));opacity:0;pointer-events:none;transform:translateY(12px);transition:opacity .28s,transform .28s}
+.page.on{opacity:1;pointer-events:all;transform:none}
+.page::-webkit-scrollbar{display:none}
+
+/* NAV */
+.nav{z-index:50;background:rgba(2,12,26,.97);border-top:1px solid rgba(0,140,170,.18);backdrop-filter:blur(22px);display:grid;grid-template-columns:repeat(4,1fr);padding:8px 0 calc(8px + var(--safe-b));flex-shrink:0}
+.ni{display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 4px;cursor:pointer;opacity:.42;transition:opacity .2s;user-select:none}
+.ni.on{opacity:1}
+.ni .ic{font-size:1.2rem;transition:filter .2s}
+.ni.on .ic{filter:drop-shadow(0 0 5px var(--c))}
+.ni .lb{font-size:.6rem;color:var(--t2)}
+.ni.on .lb{color:var(--c)}
+
+/* SHARED */
+.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--r1);backdrop-filter:blur(10px)}
+.sec{margin:10px 15px 0}
+.row{display:flex;align-items:center;gap:10px}
+
+/* ═══ HOME ═══ */
+.hdr{padding:16px 16px 6px;display:flex;justify-content:space-between;align-items:flex-start}
+.hdr h1{font-size:1.45rem;font-weight:700;line-height:1.2}
+.hdr .sub{font-family:'Orbitron',sans-serif;font-size:.46rem;color:var(--c3);letter-spacing:.22em;margin-top:2px}
+.hdr .tag{font-size:.66rem;color:var(--t3);margin-top:2px}
+.badge{display:flex;align-items:center;gap:5px;background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.28);border-radius:28px;padding:6px 12px;white-space:nowrap;flex-shrink:0}
+.badge .sh{width:15px;height:15px;border:2px solid var(--am);border-radius:50% 50% 40% 40%;display:flex;align-items:center;justify-content:center;font-size:7px}
+.badge.armed .sh{animation:shp 2s ease-in-out infinite}
+@keyframes shp{0%,100%{box-shadow:0 0 5px var(--am)}50%{box-shadow:0 0 12px var(--am2);border-color:var(--am2)}}
+.badge span{font-size:.78rem;font-weight:500;color:var(--am2)}
+
+/* PORTHOLE */
+.ph-wrap{padding:0 15px;margin-top:6px;position:relative}
+.ph-outer{position:relative;width:100%;padding-bottom:100%}
+.ph-frame{position:absolute;inset:0;border-radius:50%;padding:14px;
+  background:
+    radial-gradient(circle at 28% 28%,rgba(60,100,120,.7),transparent 45%),
+    conic-gradient(from 0deg,#0f2535,#1e4a60,#253d4e,#0f2535,#162d40,#1e4a60,#0f2535);
+  box-shadow:
+    0 0 0 3px rgba(0,80,110,.9),
+    0 0 0 7px rgba(0,40,60,.7),
+    0 0 0 9px rgba(0,100,130,.25),
+    0 0 50px rgba(0,130,170,.18),
+    inset 0 0 20px rgba(0,0,0,.9)}
+.bolts{position:absolute;inset:-6px;pointer-events:none}
+.bolt{position:absolute;width:12px;height:12px;
+  background:radial-gradient(circle at 35% 28%,#5a8a9a,#0d2030);
+  border-radius:50%;border:1.5px solid rgba(0,140,170,.5);
+  box-shadow:0 0 4px rgba(0,180,210,.2),inset 0 1px 0 rgba(255,255,255,.08);
+  display:flex;align-items:center;justify-content:center;font-size:7px;color:rgba(0,200,220,.4)}
+.bolt:nth-child(1){top:9%;left:50%;transform:translateX(-50%)}
+.bolt:nth-child(2){top:22%;right:4%}
+.bolt:nth-child(3){top:62%;right:1%}
+.bolt:nth-child(4){bottom:7%;left:50%;transform:translateX(-50%)}
+.bolt:nth-child(5){top:62%;left:1%}
+.bolt:nth-child(6){top:22%;left:4%}
+
+/* Canvas fills the circle */
+#seaCanvas{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;display:block}
+
+/* waveform pill */
+.ph-pill{position:absolute;top:13px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:5px;background:rgba(0,8,18,.8);border:1px solid rgba(0,229,255,.28);border-radius:18px;padding:4px 12px;z-index:10;white-space:nowrap;pointer-events:none}
+.wbars{display:flex;align-items:center;gap:2px}
+.wb{width:2px;background:var(--c);border-radius:1px;animation:wba ease-in-out infinite alternate}
+.wb:nth-child(1){height:5px;animation-duration:.8s}
+.wb:nth-child(2){height:9px;animation-duration:.6s;animation-delay:.1s}
+.wb:nth-child(3){height:13px;animation-duration:.7s;animation-delay:.2s}
+.wb:nth-child(4){height:7px;animation-duration:.5s;animation-delay:.15s}
+.wb:nth-child(5){height:11px;animation-duration:.9s;animation-delay:.05s}
+@keyframes wba{from{transform:scaleY(.25);opacity:.4}to{transform:scaleY(1);opacity:1}}
+.ph-lbl{font-size:.74rem;color:var(--c);transition:color .3s}
+
+/* NOW PLAYING */
+.now-bar{margin:8px 15px 0;padding:9px 13px;display:flex;align-items:center;gap:9px}
+.spin{font-size:1.2rem;animation:spin 3s linear infinite;display:inline-block}
+.spin.off{animation-play-state:paused}
+@keyframes spin{to{transform:rotate(360deg)}}
+.now-name{font-size:.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.now-sub{font-size:.62rem;color:var(--t3);margin-top:1px}
+.icon-btn{width:30px;height:30px;border:1px solid rgba(0,229,255,.22);border-radius:50%;background:rgba(0,229,255,.05);display:flex;align-items:center;justify-content:center;font-size:.85rem;cursor:pointer;flex-shrink:0;transition:background .15s}
+.icon-btn:active{background:rgba(0,229,255,.18)}
+
+/* CONTROLS */
+.ctrl{margin:8px 15px 0;padding:13px;display:grid;grid-template-columns:1fr 1px 1fr;gap:0}
+.cdiv{background:rgba(0,200,220,.1);height:100%}
+.cg{padding:0 12px}
+.cg:first-child{padding-left:0}
+.cg:last-child{padding-right:0}
+.cl{font-size:.68rem;color:var(--t3);margin-bottom:7px;display:flex;align-items:center;gap:3px}
+.cv{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:600;color:var(--c);margin-bottom:6px}
+input[type=range]{-webkit-appearance:none;width:100%;height:3px;background:rgba(0,100,130,.4);border-radius:2px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--c);box-shadow:0 0 7px var(--c);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--c);box-shadow:0 0 7px var(--c);border:none;cursor:pointer}
+.mic-row{display:flex;align-items:center;gap:5px;margin-bottom:6px}
+.mic-dot{width:7px;height:7px;background:var(--gr);border-radius:50%;box-shadow:0 0 7px var(--gr);animation:mpulse 1.5s ease-in-out infinite}
+@keyframes mpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.4);opacity:.5}}
+.sens-row{display:flex;align-items:center;gap:3px;margin-top:3px}
+.sb{width:5px;height:8px;border-radius:1px;background:rgba(0,150,170,.3);transition:background .2s}
+.sb.on{background:var(--c2)}
+.sb.peak{background:var(--c);box-shadow:0 0 4px var(--c)}
+
+/* TOGGLE SWITCH */
+.toggle-wrap{margin:8px 15px 0;padding:13px 16px;display:flex;align-items:center;gap:14px}
+.toggle-label{flex:1}
+.toggle-title{font-size:.9rem;font-weight:600;margin-bottom:2px}
+.toggle-sub{font-size:.65rem;color:var(--t3)}
+.tog{width:56px;height:28px;background:rgba(0,100,130,.3);border-radius:14px;position:relative;cursor:pointer;border:1px solid rgba(0,200,220,.2);flex-shrink:0;transition:background .3s,border-color .3s}
+.tog.on{background:rgba(0,229,255,.25);border-color:var(--c)}
+.tog .knob{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#2a5a6a;transition:transform .25s,background .25s,box-shadow .25s;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.tog.on .knob{transform:translateX(28px);background:var(--c);box-shadow:0 0 10px rgba(0,229,255,.6)}
+.tog-status{font-family:'Orbitron',sans-serif;font-size:.68rem;margin-left:8px;color:var(--t3);transition:color .25s;white-space:nowrap}
+.tog.on + .tog-status{color:var(--c)}
+
+/* MIC PERMISSION BTN */
+.mic-perm-btn{width:100%;padding:10px;background:rgba(0,229,255,.08);border:1px dashed rgba(0,229,255,.3);border-radius:var(--r2);font-size:.78rem;color:var(--c);cursor:pointer;text-align:center;margin-top:6px;transition:background .2s}
+.mic-perm-btn:active{background:rgba(0,229,255,.15)}
+
+/* STATS */
+.stat-panel{margin:8px 15px 0;padding:13px}
+.sg{display:grid;grid-template-columns:repeat(3,1fr)}
+.si{text-align:center;padding:5px 3px;position:relative}
+.si:not(:last-child)::after{content:'';position:absolute;right:0;top:10%;height:80%;width:1px;background:rgba(0,200,220,.1)}
+.sic{font-size:.82rem;margin-bottom:4px}
+.slb{font-size:.6rem;color:var(--t3);margin-bottom:5px}
+.sv{font-family:'Orbitron',sans-serif;font-size:1.28rem;font-weight:700;color:var(--c);line-height:1}
+.su{font-size:.72rem;color:var(--t2)}
+.sbadge{display:inline-block;background:rgba(0,229,255,.09);border:1px solid rgba(0,229,255,.28);border-radius:4px;padding:2px 6px;font-size:.58rem;color:var(--c);margin-top:4px}
+.ssub{font-size:.58rem;color:var(--t3);margin-top:4px}
+
+/* TOAST */
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:rgba(0,35,55,.97);border:1px solid var(--am);border-radius:11px;padding:9px 16px;display:flex;align-items:center;gap:9px;z-index:300;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast .tt{font-size:.76rem}
+.toast .tt strong{color:var(--am)}
+
+/* ═══ BATTLE REPORT ═══ */
+.br-hdr{padding:18px 16px 10px;display:flex;align-items:center;justify-content:space-between}
+.br-hdr h2{font-size:1.15rem;font-weight:700}
+.export-btn{font-size:.65rem;color:var(--c);border:1px solid rgba(0,229,255,.28);border-radius:18px;padding:4px 10px;cursor:pointer;background:rgba(0,229,255,.05)}
+.br-sum{margin:0 15px;padding:15px;position:relative;overflow:hidden}
+.br-sum::before{content:'';position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:radial-gradient(circle,rgba(0,229,255,.05),transparent 70%);pointer-events:none}
+.ring-wrap{display:flex;align-items:center;gap:14px}
+.ring-box{width:66px;height:66px;position:relative;flex-shrink:0}
+.ring-box svg{transform:rotate(-90deg)}
+.ring-t{stroke:rgba(0,229,255,.08);stroke-width:6;fill:none}
+.ring-f{stroke:var(--c);stroke-width:6;fill:none;stroke-linecap:round;stroke-dasharray:188;stroke-dashoffset:188;transition:stroke-dashoffset 1s ease;filter:drop-shadow(0 0 3px var(--c))}
+.ring-lbl{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-pct{font-family:'Orbitron',sans-serif;font-size:.78rem;font-weight:700;color:var(--c)}
+.ring-s{font-size:.46rem;color:var(--t3)}
+.br-info-title{font-size:.95rem;font-weight:700;margin-bottom:3px}
+.br-tag{display:inline-block;background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.28);border-radius:18px;padding:2px 9px;font-size:.62rem;color:var(--gr);margin-bottom:5px}
+.br-desc{font-size:.7rem;color:var(--t3);line-height:1.5}
+.stats4{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:8px 15px 0}
+.s4{padding:11px;display:flex;align-items:center;gap:9px}
+.s4-ic{font-size:1.3rem}
+.s4-v{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;color:var(--c)}
+.s4-l{font-size:.6rem;color:var(--t3);margin-top:2px}
+.chart-box{margin:8px 15px 0;padding:13px}
+.ch-title{font-size:.75rem;font-weight:600;color:var(--t2);margin-bottom:10px}
+.bar-ch{display:flex;align-items:flex-end;gap:3px;height:72px}
+.bc{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1}
+.bc-b{width:100%;background:linear-gradient(180deg,var(--c2),rgba(0,100,130,.25));border-radius:2px 2px 0 0;min-height:2px;position:relative}
+.bc-b::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.1),transparent)}
+.bc-lb{font-size:.5rem;color:var(--t3)}
+.bc-v{font-size:.56rem;color:var(--c);font-family:'Orbitron',sans-serif}
+.week-row{display:flex;gap:5px;margin:8px 15px 0;overflow-x:auto;padding-bottom:3px}
+.week-row::-webkit-scrollbar{display:none}
+.wd{flex-shrink:0;width:40px;padding:7px 3px;text-align:center;border-radius:9px;cursor:pointer;border:1px solid var(--border)}
+.wd.today{border-color:var(--c);background:rgba(0,229,255,.05)}
+.wd-d{font-size:.57rem;color:var(--t3)}
+.wd-s{font-size:.76rem;font-family:'Orbitron',sans-serif;color:var(--c);margin:3px 0}
+.wd-bar{height:2px;border-radius:1px;background:var(--c2);margin:0 3px;opacity:.55}
+.tl-box{margin:8px 15px 0;padding:13px}
+.tl-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.tl-title{font-size:.75rem;font-weight:600;color:var(--t2)}
+.tl-badge{font-size:.6rem;color:var(--t3)}
+.tl-item{display:flex;gap:10px;margin-bottom:9px;position:relative}
+.tl-item:not(:last-child)::after{content:'';position:absolute;left:6px;top:14px;bottom:-9px;width:1px;background:rgba(0,229,255,.08)}
+.tl-dot{width:13px;height:13px;border-radius:50%;flex-shrink:0;margin-top:1px;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:6px}
+.tl-ok{border-color:var(--gr);background:rgba(0,255,136,.08);color:var(--gr)}
+.tl-al{border-color:var(--am);background:rgba(245,166,35,.08);color:var(--am)}
+.tl-time{font-family:'Orbitron',sans-serif;font-size:.62rem;color:var(--t3)}
+.tl-desc{font-size:.73rem;color:var(--t1);margin-top:1px}
+.tl-detail{font-size:.62rem;color:var(--t3);margin-top:1px}
+
+/* ═══ SOUND LIBRARY ═══ */
+.sl-hdr{padding:18px 16px 10px;display:flex;align-items:center;justify-content:space-between}
+.sl-hdr h2{font-size:1.15rem;font-weight:700}
+.sl-search{margin:0 15px;position:relative}
+.sl-search input{width:100%;background:var(--panel);border:1px solid var(--border);border-radius:25px;padding:9px 15px 9px 36px;font-size:.8rem;color:var(--t1);outline:none;font-family:'Noto Sans SC',sans-serif}
+.sl-search input::placeholder{color:var(--t3)}
+.sl-search::before{content:'🔍';position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:.8rem}
+.sl-cats{display:flex;gap:7px;margin:8px 15px 0;overflow-x:auto;padding-bottom:3px}
+.sl-cats::-webkit-scrollbar{display:none}
+.cat-btn{flex-shrink:0;padding:5px 13px;border-radius:18px;font-size:.7rem;border:1px solid var(--border);color:var(--t2);cursor:pointer;transition:all .18s;background:var(--panel);white-space:nowrap}
+.cat-btn.on{background:rgba(0,229,255,.1);border-color:var(--c);color:var(--c)}
+.sl-now{margin:8px 15px 0;padding:13px;display:flex;align-items:center;gap:11px}
+.sl-now-ic{font-size:1.8rem}
+.sl-now-info{flex:1;min-width:0}
+.sl-now-name{font-size:.88rem;font-weight:700;margin-bottom:2px}
+.sl-now-desc{font-size:.65rem;color:var(--t3)}
+.sl-vis{height:34px;display:flex;align-items:center;gap:2px;margin-top:8px;overflow:hidden}
+.slvb{width:3px;border-radius:2px;background:var(--c2);animation:slva ease-in-out infinite alternate}
+@keyframes slva{from{transform:scaleY(.15)}to{transform:scaleY(1)}}
+.sg2{margin:8px 15px 0;display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.sc{padding:12px;cursor:pointer;transition:border-color .2s;position:relative;overflow:hidden;border:1px solid var(--border);border-radius:var(--r2);background:var(--panel)}
+.sc:active{transform:scale(.97)}
+.sc.active{border-color:var(--c);background:rgba(0,229,255,.05)}
+.sc.active::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(0,229,255,.04),transparent 70%);pointer-events:none}
+.sc-vis{height:48px;border-radius:6px;margin-bottom:8px;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;padding-bottom:3px;gap:2px;background:rgba(0,0,0,.25)}
+.mwb{width:2px;border-radius:1px;animation:wba ease-in-out infinite alternate}
+.sc-name{font-size:.78rem;font-weight:600;margin-bottom:2px}
+.sc-desc{font-size:.6rem;color:var(--t3);line-height:1.35}
+.sc-footer{display:flex;align-items:center;justify-content:space-between;margin-top:7px}
+.sc-tag{font-size:.56rem;color:var(--t3);background:rgba(0,0,0,.25);border-radius:4px;padding:2px 5px}
+.sc-play{width:24px;height:24px;border-radius:50%;border:1px solid rgba(0,229,255,.35);display:flex;align-items:center;justify-content:center;font-size:.65rem;background:rgba(0,229,255,.06)}
+.sc.active .sc-play{background:var(--c);border-color:var(--c);color:#001a2a}
+
+/* ═══ PROFILE ═══ */
+.pf-hdr{padding:18px 16px 10px}
+.pf-hdr h2{font-size:1.15rem;font-weight:700}
+.pf-user{margin:0 15px;padding:14px;display:flex;align-items:center;gap:12px}
+.pf-av{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,rgba(0,229,255,.18),rgba(0,100,150,.4));border:2px solid rgba(0,229,255,.28);display:flex;align-items:center;justify-content:center;font-size:1.7rem;flex-shrink:0}
+.pf-name{font-size:.95rem;font-weight:700;margin-bottom:2px}
+.pf-sub{font-size:.66rem;color:var(--t3)}
+.pf-lv{display:inline-block;margin-top:4px;background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.28);border-radius:18px;padding:2px 9px;font-size:.6rem;color:var(--am2)}
+.pf-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:8px 15px 0}
+.pfs{padding:10px 5px;text-align:center;border:1px solid var(--border);border-radius:var(--r2);background:var(--panel)}
+.pfs-v{font-family:'Orbitron',sans-serif;font-size:.95rem;color:var(--c);font-weight:700}
+.pfs-l{font-size:.58rem;color:var(--t3);margin-top:3px}
+
+/* TIMER */
+.timer-card{margin:8px 15px 0;padding:14px}
+.timer-title{font-size:.8rem;font-weight:600;color:var(--t2);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.timer-title::before{content:'';display:block;width:3px;height:11px;background:var(--c2);border-radius:2px}
+.timer-display{text-align:center;margin-bottom:14px}
+.timer-time{font-family:'Orbitron',sans-serif;font-size:2.8rem;font-weight:700;color:var(--c);text-shadow:0 0 20px rgba(0,229,255,.4),0 0 60px rgba(0,229,255,.1);letter-spacing:.04em;line-height:1}
+.timer-label{font-size:.65rem;color:var(--t3);margin-top:4px}
+.timer-presets{display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap}
+.tp{flex:1;min-width:50px;padding:7px 5px;border:1px solid var(--border);border-radius:8px;text-align:center;font-size:.7rem;color:var(--t2);cursor:pointer;background:rgba(0,229,255,.03);transition:all .18s;white-space:nowrap}
+.tp.on{background:rgba(0,229,255,.12);border-color:var(--c);color:var(--c)}
+.tp:active{transform:scale(.95)}
+.timer-custom{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.timer-custom label{font-size:.7rem;color:var(--t3);white-space:nowrap}
+.timer-custom input[type=number]{width:56px;background:rgba(0,229,255,.05);border:1px solid var(--border);border-radius:7px;padding:6px 8px;font-size:.82rem;color:var(--t1);text-align:center;outline:none;font-family:'Orbitron',sans-serif}
+.timer-custom input[type=number]::-webkit-inner-spin-button{display:none}
+.timer-btns{display:flex;gap:8px}
+.tbtn{flex:1;padding:10px;border-radius:10px;border:none;font-size:.78rem;font-family:'Noto Sans SC',sans-serif;cursor:pointer;font-weight:600;transition:all .18s}
+.tbtn-start{background:rgba(0,229,255,.15);color:var(--c);border:1px solid var(--c)}
+.tbtn-start:active{background:rgba(0,229,255,.25)}
+.tbtn-cancel{background:rgba(255,60,60,.1);color:var(--rd);border:1px solid rgba(255,60,60,.3)}
+.tbtn-cancel:active{background:rgba(255,60,60,.18)}
+.timer-progress{height:3px;background:rgba(0,229,255,.12);border-radius:2px;margin-top:10px;overflow:hidden}
+.timer-bar{height:100%;background:linear-gradient(90deg,var(--c2),var(--c));border-radius:2px;transition:width .5s linear;width:0}
+
+/* UPLOAD */
+.upl-sec{margin:8px 15px 0}
+.upl-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.upl-hdr-title{font-size:.78rem;font-weight:600;color:var(--t2);display:flex;align-items:center;gap:6px}
+.upl-hdr-title::before{content:'';display:block;width:3px;height:11px;background:var(--c2);border-radius:2px}
+.upl-btn2{font-size:.63rem;color:var(--c);cursor:pointer;padding:4px 10px;border:1px solid rgba(0,229,255,.28);border-radius:18px;background:rgba(0,229,255,.05)}
+.upl-drop{background:var(--panel);border:2px dashed rgba(0,229,255,.18);border-radius:var(--r2);padding:18px;text-align:center;cursor:pointer;transition:border-color .2s;position:relative;border:1px dashed rgba(0,229,255,.22)}
+.upl-drop:hover,.upl-drop.drag{border-color:rgba(0,229,255,.45)}
+.upl-drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upl-ic{font-size:1.8rem;margin-bottom:6px}
+.upl-txt{font-size:.76rem;color:var(--t2);margin-bottom:3px}
+.upl-sub2{font-size:.62rem;color:var(--t3)}
+.track-list{margin-top:8px}
+.mt{background:var(--panel);border:1px solid var(--border);border-radius:var(--r2);padding:10px 13px;display:flex;align-items:center;gap:10px;margin-bottom:7px;cursor:pointer;transition:border-color .18s}
+.mt.playing{border-color:var(--c)}
+.mt-num{width:18px;text-align:center;font-family:'Orbitron',sans-serif;font-size:.65rem;color:var(--t3)}
+.mt-num.p{color:var(--c)}
+.mt-info{flex:1;min-width:0}
+.mt-name{font-size:.78rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mt-meta{font-size:.6rem;color:var(--t3);margin-top:1px}
+.mt-dur{font-family:'Orbitron',sans-serif;font-size:.62rem;color:var(--t3)}
+.mt-del{padding:4px 7px;font-size:.72rem;color:var(--t3);cursor:pointer;opacity:.55}
+.mt-del:active{color:var(--rd);opacity:1}
+.empty-tip{text-align:center;color:var(--t3);font-size:.72rem;padding:14px}
+
+/* HISTORY */
+.hist-item{padding:10px 13px;display:flex;align-items:center;gap:10px;margin-bottom:7px;border:1px solid var(--border);border-radius:var(--r2);background:var(--panel)}
+.hi-ic{font-size:1.2rem}
+.hi-info{flex:1}
+.hi-title{font-size:.78rem;font-weight:500;margin-bottom:2px}
+.hi-meta{font-size:.6rem;color:var(--t3)}
+.hi-score{font-family:'Orbitron',sans-serif;font-size:.72rem;color:var(--gr)}
+
+/* SETTINGS LIST */
+.set-list{background:var(--panel);border:1px solid var(--border);border-radius:var(--r1);overflow:hidden;margin:8px 15px 0}
+.set-item{display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid rgba(0,200,220,.06);cursor:pointer;transition:background .12s}
+.set-item:last-child{border-bottom:none}
+.set-item:active{background:rgba(0,229,255,.03)}
+.set-ic2{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0}
+.set-lbl{flex:1;font-size:.8rem}
+.set-m{font-size:.65rem;color:var(--t3)}
+.set-arr{color:var(--t3);font-size:.68rem}
+.mini-tog{width:36px;height:20px;background:rgba(0,229,255,.12);border-radius:10px;position:relative;cursor:pointer;border:1px solid rgba(0,229,255,.18);flex-shrink:0;transition:background .22s}
+.mini-tog.on{background:rgba(0,229,255,.3);border-color:var(--c)}
+.mini-tog::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#2a5a6a;transition:transform .22s,background .22s}
+.mini-tog.on::after{transform:translateX(16px);background:var(--c)}
+
+@media(max-width:380px){.hdr h1{font-size:1.25rem}.sv{font-size:1.1rem}.timer-time{font-size:2.3rem}}
+@media(min-width:431px){.shell{box-shadow:0 0 80px rgba(0,90,140,.12)}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast">
+  <span>🛡️</span>
+  <div class="tt">噪音拦截成功！<strong>绝对防御</strong> ×<span id="tCount">0</span></div>
+</div>
+
+<div class="shell">
+<div class="pages">
+
+<!-- ████ PAGE 0: HOME ████ -->
+<div class="page on" id="p0">
+  <header class="hdr">
+    <div>
+      <h1>自适应声学防空洞</h1>
+      <div class="sub">ADAPTIVE SONIC SHELTER</div>
+      <div class="tag">大众毁灭者 · 动态大众终结界</div>
+    </div>
+    <div class="badge" id="statusBadge">
+      <div class="sh">⚡</div>
+      <span id="statusTxt">待机中</span>
+    </div>
+  </header>
+
+  <!-- PORTHOLE -->
+  <div class="ph-wrap" id="phWrap">
+    <div class="ph-outer">
+      <div class="ph-frame">
+        <div class="bolts">
+          <div class="bolt">+</div><div class="bolt">+</div>
+          <div class="bolt">+</div><div class="bolt">+</div>
+          <div class="bolt">+</div><div class="bolt">+</div>
+        </div>
+        <div style="width:100%;height:100%;border-radius:50%;overflow:hidden;position:relative">
+          <canvas id="seaCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="ph-pill">
+      <div class="wbars"><div class="wb"></div><div class="wb"></div><div class="wb"></div><div class="wb"></div><div class="wb"></div></div>
+      <span class="ph-lbl" id="phLbl">环境安静</span>
+    </div>
+  </div>
+
+  <!-- NOW PLAYING -->
+  <div class="card now-bar" id="nowBar">
+    <span class="spin" id="nowIc">💿</span>
+    <div style="flex:1;min-width:0">
+      <div class="now-name" id="nowName">深海微雨</div>
+      <div class="now-sub" id="nowSub">轻柔雨声 · 保底模式</div>
+    </div>
+    <div class="row">
+      <div class="icon-btn" id="nowPlayBtn" onclick="togglePlay()">⏸</div>
+      <div class="icon-btn" onclick="nextTrack()">⏭</div>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="card ctrl">
+    <div class="cg">
+      <div class="cl">💧 保底音量</div>
+      <div class="cv" id="volDisp">20%</div>
+      <input type="range" id="volSlider" min="0" max="100" value="20">
+    </div>
+    <div class="cdiv"></div>
+    <div class="cg">
+      <div class="cl">🎙 麦克风</div>
+      <div class="mic-row">
+        <div class="mic-dot" id="micDot" style="background:#3a7a8a;box-shadow:none;animation:none"></div>
+        <span style="font-size:.74rem;color:var(--t3)" id="micTxt">未授权</span>
+      </div>
+      <div style="font-size:.62rem;color:var(--t3);margin-bottom:3px">环境音量</div>
+      <div class="sens-row" id="sensRow">
+        <div class="sb"></div><div class="sb"></div><div class="sb"></div>
+        <div class="sb"></div><div class="sb"></div><div class="sb"></div>
+        <div class="sb"></div><div class="sb"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN TOGGLE -->
+  <div class="card toggle-wrap">
+    <div class="toggle-label">
+      <div class="toggle-title">防空洞开关</div>
+      <div class="toggle-sub" id="togSub">向上拨动，建立声学结界</div>
+    </div>
+    <div class="tog" id="mainTog" onclick="handleToggle()">
+      <div class="knob"></div>
+    </div>
+    <div class="tog-status" id="togStatus">关</div>
+  </div>
+
+  <!-- MIC PERMISSION -->
+  <div class="sec" id="micPermSec">
+    <div class="mic-perm-btn" onclick="requestMic()">🎙 点击授权麦克风，开启实时噪音监听</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="card stat-panel">
+    <div class="sg">
+      <div class="si">
+        <div class="sic">🎯</div>
+        <div class="slb">今日拦截</div>
+        <div><span class="sv" id="icCount">0</span><span class="su"> 次</span></div>
+      </div>
+      <div class="si">
+        <div class="sic">🛡</div>
+        <div class="slb">防御成功率</div>
+        <div><span class="sv" id="defRate" style="font-size:1.4rem">—</span></div>
+        <div class="sbadge" id="defBadge" style="display:none">完美防御</div>
+      </div>
+      <div class="si">
+        <div class="sic">⏱</div>
+        <div class="slb">本次守护</div>
+        <div><span class="sv" id="guardTime">0</span><span class="su">m</span></div>
+        <div class="ssub" id="guardDate"></div>
+      </div>
+    </div>
+  </div>
+  <div style="height:8px"></div>
+</div><!-- /p0 -->
+
+<!-- ████ PAGE 1: BATTLE REPORT ████ -->
+<div class="page" id="p1">
+  <div class="br-hdr">
+    <div>
+      <h2>📊 今日战报</h2>
+      <div style="font-size:.68rem;color:var(--t3)" id="brDate"></div>
+    </div>
+    <div class="export-btn" onclick="exportReport()">导出</div>
+  </div>
+
+  <div class="card br-sum">
+    <div class="ring-wrap">
+      <div class="ring-box">
+        <svg viewBox="0 0 66 66" width="66" height="66">
+          <circle class="ring-t" cx="33" cy="33" r="30"/>
+          <circle class="ring-f" id="ringF" cx="33" cy="33" r="30"/>
+        </svg>
+        <div class="ring-lbl">
+          <div class="ring-pct" id="ringPct">0%</div>
+          <div class="ring-s">防御率</div>
+        </div>
+      </div>
+      <div>
+        <div class="br-info-title" id="brTitle">待机模式</div>
+        <div class="br-tag" id="brTag">— 今日未开启 —</div>
+        <div class="br-desc" id="brDesc">开启防空洞后，战报将实时更新。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats4">
+    <div class="card s4"><div class="s4-ic">🎯</div><div><div class="s4-v" id="br-ic">0</div><div class="s4-l">成功拦截次数</div></div></div>
+    <div class="card s4"><div class="s4-ic">⚡</div><div><div class="s4-v" id="br-rs">—</div><div class="s4-l">平均响应速度</div></div></div>
+    <div class="card s4"><div class="s4-ic">📈</div><div><div class="s4-v" id="br-db">—</div><div class="s4-l">最大音量补偿</div></div></div>
+    <div class="card s4"><div class="s4-ic">🌙</div><div><div class="s4-v" id="br-snd" style="font-size:.72rem">—</div><div class="s4-l">使用声音</div></div></div>
+  </div>
+
+  <div class="chart-box card">
+    <div class="ch-title">拦截事件 · 时段分布</div>
+    <div class="bar-ch" id="barCh"></div>
+    <div style="display:flex;justify-content:space-between;margin-top:3px">
+      <span style="font-size:.5rem;color:var(--t3)" id="ch-t0"></span>
+      <span style="font-size:.5rem;color:var(--t3)" id="ch-t1"></span>
+      <span style="font-size:.5rem;color:var(--t3)" id="ch-t2"></span>
+      <span style="font-size:.5rem;color:var(--t3)" id="ch-t3"></span>
+      <span style="font-size:.5rem;color:var(--t3)" id="ch-t4"></span>
+    </div>
+  </div>
+
+  <div style="margin:8px 15px 0;font-size:.72rem;color:var(--t2);font-weight:600">本周概览</div>
+  <div class="week-row" id="weekRow"></div>
+
+  <div class="card tl-box">
+    <div class="tl-hdr">
+      <span class="tl-title">拦截事件记录</span>
+      <span class="tl-badge" id="tlBadge">今日 0 次</span>
+    </div>
+    <div id="timeline"><div style="text-align:center;color:var(--t3);font-size:.72rem;padding:10px">开启防空洞后，拦截记录将显示在这里</div></div>
+  </div>
+  <div style="height:8px"></div>
+</div><!-- /p1 -->
+
+<!-- ████ PAGE 2: SOUND LIBRARY ████ -->
+<div class="page" id="p2">
+  <div class="sl-hdr">
+    <h2>🎵 声音库</h2>
+    <div style="font-size:.65rem;color:var(--t3)">与防空洞联动</div>
+  </div>
+  <div class="sl-search"><input type="text" placeholder="搜索声音..." id="sSearch" oninput="filterSounds()"></div>
+  <div class="sl-cats" id="sCats"></div>
+  <div class="card sl-now">
+    <div class="sl-now-ic" id="slNowIc">🌧</div>
+    <div class="sl-now-info">
+      <div class="sl-now-name" id="slNowName">深海微雨</div>
+      <div class="sl-now-desc" id="slNowDesc">轻柔细雨 · 睡眠首选 · 舷窗联动</div>
+      <div class="sl-vis" id="slVis"></div>
+    </div>
+    <div class="icon-btn" id="slPlayBtn" onclick="togglePlay()" style="width:36px;height:36px;font-size:1rem">⏸</div>
+  </div>
+  <div class="sg2" id="sGrid"></div>
+  <div style="height:8px"></div>
+</div><!-- /p2 -->
+
+<!-- ████ PAGE 3: PROFILE ████ -->
+<div class="page" id="p3">
+  <div class="pf-hdr"><h2>👤 我的</h2></div>
+
+  <div class="card pf-user">
+    <div class="pf-av">🧑‍🚀</div>
+    <div>
+      <div class="pf-name">深海守护者</div>
+      <div class="pf-sub">累计使用 127 天 · 连续 18 天</div>
+      <div class="pf-lv">⭐ Lv.7 声学指挥官</div>
+    </div>
+  </div>
+
+  <div class="pf-stats">
+    <div class="pfs"><div class="pfs-v" id="pfTotal">0</div><div class="pfs-l">总拦截次数</div></div>
+    <div class="pfs"><div class="pfs-v" id="pfTime">0m</div><div class="pfs-l">累计守护</div></div>
+    <div class="pfs"><div class="pfs-v" id="pfRate">—</div><div class="pfs-l">总防御率</div></div>
+  </div>
+
+  <!-- TIMER -->
+  <div class="card timer-card sec">
+    <div class="timer-title">定时关闭</div>
+    <div class="timer-display">
+      <div class="timer-time" id="timerDisp">00:00</div>
+      <div class="timer-label" id="timerLbl">选择时长，到时自动关闭防空洞</div>
+    </div>
+    <div class="timer-presets">
+      <div class="tp" data-min="15" onclick="setTimer(15)">15分</div>
+      <div class="tp" data-min="30" onclick="setTimer(30)">30分</div>
+      <div class="tp" data-min="60" onclick="setTimer(60)">1小时</div>
+      <div class="tp" data-min="120" onclick="setTimer(120)">2小时</div>
+      <div class="tp" data-min="480" onclick="setTimer(480)">8小时</div>
+    </div>
+    <div class="timer-custom">
+      <label>自定义</label>
+      <input type="number" id="customMin" min="1" max="999" placeholder="分钟" value="">
+      <div class="tbtn tbtn-start" style="flex:none;padding:8px 14px;font-size:.72rem" onclick="setTimerCustom()">设置</div>
+    </div>
+    <div class="timer-btns">
+      <div class="tbtn tbtn-start" id="timerStartBtn" onclick="startTimer()">▶ 开始计时</div>
+      <div class="tbtn tbtn-cancel" id="timerCancelBtn" onclick="cancelTimer()" style="display:none">✕ 取消</div>
+    </div>
+    <div class="timer-progress"><div class="timer-bar" id="timerBar"></div></div>
+  </div>
+
+  <!-- UPLOAD -->
+  <div class="upl-sec">
+    <div class="upl-hdr">
+      <div class="upl-hdr-title">🎵 我的音乐</div>
+      <div class="upl-btn2" onclick="document.getElementById('fInput').click()">+ 上传</div>
+    </div>
+    <div class="upl-drop" id="uplDrop">
+      <input type="file" id="fInput" accept="audio/*" multiple onchange="handleUpload(event)">
+      <div class="upl-ic">📁</div>
+      <div class="upl-txt">拖拽音频文件到此处</div>
+      <div class="upl-sub2">MP3 · AAC · FLAC · WAV · OGG</div>
+    </div>
+    <div class="track-list" id="trackList"></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="sec" style="margin-top:12px">
+    <div style="font-size:.78rem;font-weight:600;color:var(--t2);margin-bottom:8px;display:flex;align-items:center;gap:6px">
+      <span style="display:block;width:3px;height:11px;background:var(--c2);border-radius:2px"></span>守护历史
+    </div>
+    <div id="histList"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="sec" style="margin-top:12px;margin-bottom:0">
+    <div style="font-size:.78rem;font-weight:600;color:var(--t2);margin-bottom:8px;display:flex;align-items:center;gap:6px">
+      <span style="display:block;width:3px;height:11px;background:var(--c2);border-radius:2px"></span>设置
+    </div>
+  </div>
+  <div class="set-list" id="setList"></div>
+  <div style="height:8px"></div>
+</div><!-- /p3 -->
+
+</div><!-- /pages -->
+
+<!-- NAV -->
+<nav class="nav" id="navBar">
+  <div class="ni on" data-p="0"><span class="ic">🏛</span><span class="lb">防空洞</span></div>
+  <div class="ni" data-p="1"><span class="ic">📊</span><span class="lb">战报</span></div>
+  <div class="ni" data-p="2"><span class="ic">🎵</span><span class="lb">声音库</span></div>
+  <div class="ni" data-p="3"><span class="ic">👤</span><span class="lb">我的</span></div>
+</nav>
+</div><!-- /shell -->
+
+<script>
+/* ═══════════════════════════════════════════════════
+   SOUND DATA
+═══════════════════════════════════════════════════ */
+const SOUNDS = [
+  {id:0,name:'深海微雨',icon:'🌧',cat:'雨声',desc:'轻柔细雨，细腻雨滴',tag:'睡眠首选',col:'#00b4cc',scene:'rain'},
+  {id:1,name:'深海风暴',icon:'⛈',cat:'雨声',desc:'骤雨狂风，深海涌浪',tag:'深度屏蔽',col:'#005a7a',scene:'storm'},
+  {id:2,name:'篝火余烬',icon:'🔥',cat:'自然',desc:'熔岩火光，温暖深海',tag:'专注模式',col:'#c06020',scene:'fire'},
+  {id:3,name:'海浪涌动',icon:'🌊',cat:'自然',desc:'浪涛起伏，深海回声',tag:'冥想放松',col:'#0088bb',scene:'ocean'},
+  {id:4,name:'白噪音',icon:'📡',cat:'噪音',desc:'纯净宽频，全段掩蔽',tag:'全能防护',col:'#5aacb8',scene:'white'},
+  {id:5,name:'咖啡厅',icon:'☕',cat:'环境',desc:'人声喁喁，杯盏轻碰',tag:'专注',col:'#a07050',scene:'cafe'},
+  {id:6,name:'森林清晨',icon:'🌲',cat:'自然',desc:'鸟鸣虫叫，林间清风',tag:'放松',col:'#208050',scene:'forest'},
+  {id:7,name:'机械键盘',icon:'⌨️',cat:'环境',desc:'键盘敲击，程序员必备',tag:'专注',col:'#8848c0',scene:'keyboard'},
+];
+const CATS = ['全部','雨声','自然','噪音','环境'];
+
+/* ═══════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════ */
+let curSound = SOUNDS[0];
+let isPlaying = true;
+let shelterOn = false;
+let micStream = null, audioCtx = null, analyser = null, micSource = null;
+let interceptCount = 0, totalInterceptCount = 847;
+let guardStart = null, guardMinutes = 0;
+let guardInterval = null;
+let alertCooldown = false;
+let noiseThreshold = 0;   // auto-calibrated
+let baselineSum = 0, baselineSamples = 0, calibrated = false;
+let lastVolume = 0;
+let interceptLog = [];   // {time, vol, boost}
+let currentCat = '全部';
+let uploadedTracks = [];
+let totalGuardMs = 312 * 60000;
+
+// Timer state
+let timerTotalSecs = 0, timerRemSecs = 0, timerRunning = false, timerInterval2 = null;
+
+/* ═══ NAV ═══ */
+document.querySelectorAll('.ni').forEach(ni => {
+  ni.addEventListener('click', () => {
+    const pg = parseInt(ni.dataset.p);
+    document.querySelectorAll('.ni').forEach(n => n.classList.remove('on'));
+    ni.classList.add('on');
+    document.querySelectorAll('.page').forEach((p,i) => p.classList.toggle('on', i===pg));
+    if (pg===1) renderReport();
+    if (pg===2) renderSoundLib();
+    if (pg===3) renderProfile();
+  });
+});
+
+/* ═══════════════════════════════════════════════════
+   CANVAS DEEP SEA PORTHOLE
+═══════════════════════════════════════════════════ */
+const canvas = document.getElementById('seaCanvas');
+const ctx2d = canvas.getContext('2d');
+let canvasW = 0, canvasH = 0;
+let animFrame;
+
+// Scene parameters driven by volume
+let sceneLoudness = 0;   // 0-1, smoothed
+let sceneAlert = false;
+
+// Particles
+const BUBBLES = Array.from({length:22}, (_,i) => ({
+  x: Math.random(), y: Math.random()*1.2+0.2,
+  r: 1.5 + Math.random()*4,
+  speed: 0.003 + Math.random()*0.008,
+  drift: (Math.random()-0.5)*0.002,
+  opacity: 0,
+  wobble: Math.random()*Math.PI*2,
+  wobbleSpeed: 0.02+Math.random()*0.04
+}));
+
+const RAYS = Array.from({length:5}, (_,i) => ({
+  x: 0.25 + i*0.12 + Math.random()*0.1,
+  width: 0.06 + Math.random()*0.08,
+  speed: 0.002 + Math.random()*0.003,
+  phase: Math.random()*Math.PI*2,
+  opacity: 0.04 + Math.random()*0.06
+}));
+
+// Raindrops (for rain/storm scenes)
+const RAIN = Array.from({length:60}, () => ({
+  x: Math.random(), y: Math.random(),
+  len: 0.04 + Math.random()*0.08,
+  speed: 0.008 + Math.random()*0.012,
+  opacity: 0.3 + Math.random()*0.5
+}));
+
+// Fire particles
+const FIRE = Array.from({length:30}, () => ({
+  x: 0.3 + Math.random()*0.4,
+  y: 0.9 + Math.random()*0.2,
+  vy: -(0.004 + Math.random()*0.012),
+  vx: (Math.random()-0.5)*0.004,
+  life: Math.random(),
+  maxLife: 0.4 + Math.random()*0.6,
+  r: 2 + Math.random()*6
+}));
+
+let t = 0;
+
+function resizeCanvas() {
+  const wrap = document.querySelector('.ph-frame');
+  if (!wrap) return;
+  // inner circle size
+  const inner = wrap.querySelector('div');
+  canvasW = inner.offsetWidth;
+  canvasH = inner.offsetHeight;
+  canvas.width = canvasW;
+  canvas.height = canvasH;
+}
+
+function drawSea() {
+  if (!canvasW) { resizeCanvas(); }
+  t += 0.016;
+  ctx2d.clearRect(0,0,canvasW,canvasH);
+
+  const scene = curSound.scene;
+  const loud = sceneLoudness;
+  const W = canvasW, H = canvasH;
+
+  // === BG ===
+  let bg1, bg2;
+  if (scene==='fire') {
+    bg1 = `rgba(${40+loud*60},${10+loud*20},${5},1)`;
+    bg2 = `rgba(${20+loud*30},5,3,1)`;
+  } else if (scene==='forest') {
+    bg1 = `rgba(5,${20+loud*30},${10+loud*20},1)`;
+    bg2 = `rgba(2,10,5,1)`;
+  } else if (scene==='cafe'||scene==='keyboard') {
+    bg1 = `rgba(${15+loud*20},${10+loud*15},${25+loud*20},1)`;
+    bg2 = `rgba(8,6,18,1)`;
+  } else {
+    // default deep ocean
+    bg1 = `rgba(${2+loud*10},${18+loud*30},${40+loud*40},1)`;
+    bg2 = `rgba(1,8,20,1)`;
+  }
+  const grad = ctx2d.createRadialGradient(W*.5,H*.15,0,W*.5,H*.5,W*.7);
+  grad.addColorStop(0, bg1);
+  grad.addColorStop(1, bg2);
+  ctx2d.fillStyle = grad;
+  ctx2d.fillRect(0,0,W,H);
+
+  // === LIGHT RAYS (ocean/rain scenes) ===
+  if (scene!=='fire'&&scene!=='cafe'&&scene!=='keyboard') {
+    RAYS.forEach(ray => {
+      const alpha = ray.opacity * (0.6 + Math.sin(t*ray.speed*60 + ray.phase)*0.4) * (1+loud*0.5);
+      const cx = W*(ray.x + Math.sin(t*0.3+ray.phase)*0.03);
+      const rayGrad = ctx2d.createLinearGradient(cx, 0, cx, H*0.7);
+      rayGrad.addColorStop(0, `rgba(120,220,255,${alpha})`);
+      rayGrad.addColorStop(0.5, `rgba(80,180,220,${alpha*0.4})`);
+      rayGrad.addColorStop(1, `rgba(40,120,180,0)`);
+      ctx2d.save();
+      ctx2d.translate(cx, 0);
+      ctx2d.beginPath();
+      ctx2d.moveTo(-W*ray.width*0.5, 0);
+      ctx2d.lineTo(W*ray.width*0.5, 0);
+      ctx2d.lineTo(W*ray.width*(0.5+loud*0.3), H*0.75);
+      ctx2d.lineTo(-W*ray.width*(0.5+loud*0.3), H*0.75);
+      ctx2d.closePath();
+      ctx2d.fillStyle = rayGrad;
+      ctx2d.fill();
+      ctx2d.restore();
+    });
+  }
+
+  // === FIRE scene ===
+  if (scene==='fire') {
+    FIRE.forEach(p => {
+      p.life += 0.018 + loud*0.025;
+      if (p.life > p.maxLife) {
+        p.life = 0;
+        p.x = 0.3 + Math.random()*0.4;
+        p.y = 0.85 + Math.random()*0.15;
+        p.vy = -(0.005 + Math.random()*0.015 + loud*0.02);
+        p.vx = (Math.random()-0.5)*0.005;
+      }
+      p.x += p.vx; p.y += p.vy;
+      const progress = p.life/p.maxLife;
+      const alpha = (1-progress)*0.9;
+      const r = p.r*(1-progress*0.5);
+      const fireGrad = ctx2d.createRadialGradient(p.x*W,p.y*H,0,p.x*W,p.y*H,r*(2+loud*3));
+      const heat = 1 - progress;
+      fireGrad.addColorStop(0, `rgba(255,${Math.floor(220*heat)},${Math.floor(50*heat)},${alpha})`);
+      fireGrad.addColorStop(0.5, `rgba(${Math.floor(200*heat)},${Math.floor(80*heat)},0,${alpha*0.5})`);
+      fireGrad.addColorStop(1, `rgba(0,0,0,0)`);
+      ctx2d.fillStyle = fireGrad;
+      ctx2d.beginPath();
+      ctx2d.arc(p.x*W, p.y*H, r*(2+loud*3), 0, Math.PI*2);
+      ctx2d.fill();
+    });
+    // Floor glow
+    const floorGrad = ctx2d.createLinearGradient(0,H*0.7,0,H);
+    floorGrad.addColorStop(0,'rgba(0,0,0,0)');
+    floorGrad.addColorStop(1,`rgba(${80+loud*80},${20+loud*30},0,${0.3+loud*0.3})`);
+    ctx2d.fillStyle = floorGrad;
+    ctx2d.fillRect(0,H*0.7,W,H*0.3);
+  }
+
+  // === RAIN ===
+  if (scene==='rain'||scene==='storm'||scene==='ocean') {
+    const rainIntensity = scene==='storm' ? 1 : (scene==='ocean' ? 0.3 : 0.5);
+    const rainSpeed = (1 + loud*3) * rainIntensity;
+    RAIN.forEach(r => {
+      r.y += r.speed * rainSpeed;
+      if (r.y > 1) { r.y = -r.len; r.x = Math.random(); }
+      const alpha = r.opacity * (0.4 + loud*0.5) * rainIntensity;
+      if (alpha < 0.02) return;
+      ctx2d.strokeStyle = `rgba(140,210,240,${alpha})`;
+      ctx2d.lineWidth = 1;
+      ctx2d.beginPath();
+      ctx2d.moveTo(r.x*W, r.y*H);
+      ctx2d.lineTo(r.x*W + 2, (r.y+r.len)*H);
+      ctx2d.stroke();
+    });
+  }
+
+  // === STORM SURGE (big waves overlay) ===
+  if ((scene==='storm'||scene==='ocean') && loud > 0.2) {
+    for (let w=0; w<3; w++) {
+      const waveY = H*(0.5 + w*0.15) + Math.sin(t*1.5 + w*1.2)*H*0.04*(loud);
+      ctx2d.strokeStyle = `rgba(80,180,220,${(loud-0.2)*0.4})`;
+      ctx2d.lineWidth = 2;
+      ctx2d.beginPath();
+      for (let x=0; x<=W; x+=4) {
+        const y = waveY + Math.sin(x*0.03 + t*(2+w*0.5))*H*0.025*(0.5+loud);
+        x===0 ? ctx2d.moveTo(x,y) : ctx2d.lineTo(x,y);
+      }
+      ctx2d.stroke();
+    }
+  }
+
+  // === BUBBLES ===
+  BUBBLES.forEach(b => {
+    b.y -= b.speed * (1 + loud*2.5);
+    b.x += b.drift + Math.sin(t*b.wobbleSpeed + b.wobble)*0.001;
+    b.wobble += b.wobbleSpeed;
+    if (b.y < -0.05) { b.y = 1.1; b.x = Math.random(); b.opacity = 0; }
+    b.opacity = Math.min(1, b.opacity + 0.02);
+    const alpha = b.opacity * (scene==='fire' ? 0.1 : 0.55) * (0.5 + loud*0.5);
+    if (alpha<0.03) return;
+    const bx = b.x*W, by = b.y*H, br = b.r*(1+loud*0.5);
+    const bGrad = ctx2d.createRadialGradient(bx-br*0.3,by-br*0.3,br*0.1,bx,by,br);
+    bGrad.addColorStop(0,`rgba(200,240,255,${alpha*0.6})`);
+    bGrad.addColorStop(0.6,`rgba(100,190,220,${alpha*0.3})`);
+    bGrad.addColorStop(1,`rgba(60,140,180,0)`);
+    ctx2d.fillStyle = bGrad;
+    ctx2d.beginPath();
+    ctx2d.arc(bx,by,br,0,Math.PI*2);
+    ctx2d.fill();
+    // rim highlight
+    ctx2d.strokeStyle = `rgba(200,240,255,${alpha*0.4})`;
+    ctx2d.lineWidth = 0.5;
+    ctx2d.stroke();
+  });
+
+  // === NOISE ALERT FLASH ===
+  if (sceneAlert) {
+    const flashAlpha = 0.25 + Math.sin(t*30)*0.15;
+    ctx2d.fillStyle = `rgba(255,140,0,${flashAlpha})`;
+    ctx2d.fillRect(0,0,W,H);
+    // border flash
+    const borderGrad = ctx2d.createRadialGradient(W/2,H/2,W*0.3,W/2,H/2,W*0.7);
+    borderGrad.addColorStop(0,'rgba(255,100,0,0)');
+    borderGrad.addColorStop(1,`rgba(255,100,0,${flashAlpha*0.8})`);
+    ctx2d.fillStyle = borderGrad;
+    ctx2d.fillRect(0,0,W,H);
+  }
+
+  // === VIGNETTE ===
+  const vig = ctx2d.createRadialGradient(W/2,H/2,W*0.3,W/2,H/2,W*0.75);
+  vig.addColorStop(0,'rgba(0,0,0,0)');
+  vig.addColorStop(1,'rgba(0,0,0,0.65)');
+  ctx2d.fillStyle = vig;
+  ctx2d.fillRect(0,0,W,H);
+
+  animFrame = requestAnimationFrame(drawSea);
+}
+
+// Smooth loudness
+function setLoudness(vol) {
+  sceneLoudness += (vol - sceneLoudness) * 0.12;
+  sceneLoudness = Math.max(0, Math.min(1, sceneLoudness));
+}
+
+/* ═══════════════════════════════════════════════════
+   WEB AUDIO — MIC
+═══════════════════════════════════════════════════ */
+async function requestMic() {
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 512;
+    analyser.smoothingTimeConstant = 0.7;
+    micSource = audioCtx.createMediaStreamSource(micStream);
+    micSource.connect(analyser);
+
+    // Update UI
+    document.getElementById('micDot').style.cssText = '';
+    document.getElementById('micTxt').textContent = '已连接';
+    document.getElementById('micTxt').style.color = 'var(--gr)';
+    document.getElementById('micPermSec').style.display = 'none';
+
+    // Start processing
+    startMicLoop();
+    showToastMsg('🎙 麦克风已连接，开始监听');
+  } catch(e) {
+    showToastMsg('❌ 麦克风授权失败，请检查权限');
+  }
+}
+
+const micData = new Uint8Array(256);
+let calibFrames = 0;
+let baselineVol = 0;
+
+function startMicLoop() {
+  function loop() {
+    if (!analyser) return;
+    analyser.getByteTimeDomainData(micData);
+    // RMS volume
+    let sum = 0;
+    for (let i=0;i<micData.length;i++) { const d = (micData[i]-128)/128; sum += d*d; }
+    const rms = Math.sqrt(sum/micData.length);
+    const vol = rms; // 0~1
+
+    // Calibrate baseline (first 2s)
+    if (calibFrames < 120) {
+      calibFrames++;
+      baselineVol += vol;
+      if (calibFrames===120) {
+        baselineVol /= 120;
+        noiseThreshold = baselineVol * 4 + 0.02; // trigger at 4x baseline
+        calibrated = true;
+      }
+    }
+
+    // Update visual level bars
+    const sens = document.getElementById('sensRow');
+    if (sens) {
+      const bars = sens.querySelectorAll('.sb');
+      const lvl = Math.round(vol * 80);
+      bars.forEach((b,i) => {
+        b.classList.remove('on','peak');
+        if (i < lvl) { b.classList.add(i===lvl-1?'peak':'on'); }
+      });
+    }
+
+    // Smooth for canvas
+    setLoudness(vol * 8); // amplify for visual
+
+    lastVolume = vol;
+
+    // Dynamic volume for audio based on mic
+    if (shelterOn && calibrated) {
+      const excess = vol - noiseThreshold;
+      if (excess > 0 && !alertCooldown) {
+        const boost = Math.min(1, excess * 20 + 0.3);
+        triggerNoise(boost, vol);
+      }
+    }
+
+    requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+/* ═══════════════════════════════════════════════════
+   WEB AUDIO — PLAYBACK  (OscillatorNode white noise)
+═══════════════════════════════════════════════════ */
+let audioNodes = {}; // gainNode, source etc
+let baseGain = 0.2;
+let boostGain = 0;
+
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  }
+  // White noise buffer (2s loop)
+  if (!audioNodes.buffer) {
+    const sr = audioCtx.sampleRate;
+    const buf = audioCtx.createBuffer(1, sr*2, sr);
+    const data = buf.getChannelData(0);
+    for (let i=0;i<data.length;i++) data[i] = Math.random()*2-1;
+    audioNodes.buffer = buf;
+  }
+  stopAudioNodes();
+  const src = audioCtx.createBufferSource();
+  src.buffer = audioNodes.buffer;
+  src.loop = true;
+  const gn = audioCtx.createGain();
+  gn.gain.value = baseGain;
+  // Low-pass for rain effect
+  const bq = audioCtx.createBiquadFilter();
+  const scene = curSound.scene;
+  if (scene==='rain')    { bq.type='lowpass'; bq.frequency.value=800; }
+  else if (scene==='storm') { bq.type='lowpass'; bq.frequency.value=1200; }
+  else if (scene==='fire')  { bq.type='lowpass'; bq.frequency.value=600; }
+  else if (scene==='ocean') { bq.type='lowpass'; bq.frequency.value=500; }
+  else if (scene==='forest'){ bq.type='bandpass'; bq.frequency.value=2000; bq.Q.value=0.5; }
+  else { bq.type='allpass'; }
+  src.connect(bq); bq.connect(gn); gn.connect(audioCtx.destination);
+  src.start();
+  audioNodes.src = src; audioNodes.gn = gn; audioNodes.bq = bq;
+  if (!isPlaying) gn.gain.value = 0;
+}
+
+function stopAudioNodes() {
+  try { if (audioNodes.src) { audioNodes.src.stop(); } } catch(e){}
+  audioNodes = {};
+}
+
+function applyVolume(v) {
+  if (audioNodes.gn) audioNodes.gn.gain.setTargetAtTime(isPlaying?v:0, audioCtx.currentTime, 0.05);
+}
+
+function dynamicBoost(boost) {
+  // Ramp up
+  const targetVol = Math.min(1, baseGain + boost * (1-baseGain));
+  applyVolume(targetVol);
+  // Ramp back down after 2.5s
+  clearTimeout(audioNodes.boostTimer);
+  audioNodes.boostTimer = setTimeout(() => {
+    applyVolume(baseGain);
+  }, 2500);
+}
+
+/* ═══════════════════════════════════════════════════
+   TOGGLE / SHELTER
+═══════════════════════════════════════════════════ */
+function handleToggle() {
+  shelterOn = !shelterOn;
+  const tog = document.getElementById('mainTog');
+  const status = document.getElementById('togStatus');
+  const badge = document.getElementById('statusBadge');
+  const sub = document.getElementById('togSub');
+
+  tog.classList.toggle('on', shelterOn);
+  status.textContent = shelterOn ? '开' : '关';
+  badge.classList.toggle('armed', shelterOn);
+
+  if (shelterOn) {
+    document.getElementById('statusTxt').textContent = '防护中';
+    sub.textContent = '声学结界已建立，实时监测中...';
+    // init audio if ctx ready
+    if (audioCtx) initAudio();
+    // Start guard timer
+    guardStart = Date.now();
+    guardInterval = setInterval(updateGuardTime, 10000);
+    updateGuardTime();
+    calibFrames = 0; calibrated = false; baselineVol = 0; // re-calibrate
+  } else {
+    document.getElementById('statusTxt').textContent = '待机中';
+    sub.textContent = '向上拨动，建立声学结界';
+    stopAudioNodes();
+    if (guardInterval) clearInterval(guardInterval);
+    if (guardStart) {
+      const elapsed = Date.now() - guardStart;
+      guardMinutes += elapsed/60000;
+      totalGuardMs += elapsed;
+      guardStart = null;
+    }
+  }
+}
+
+function updateGuardTime() {
+  let mins = guardStart ? ((Date.now()-guardStart)/60000 + guardMinutes) : guardMinutes;
+  mins = Math.round(mins);
+  document.getElementById('guardTime').textContent = mins >= 60 ? (Math.floor(mins/60)+'h'+(mins%60?mins%60+'m':'')) : mins;
+  if (!document.getElementById('guardDate').textContent) {
+    const now = new Date();
+    document.getElementById('guardDate').textContent = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')} 开始`;
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   NOISE TRIGGER
+═══════════════════════════════════════════════════ */
+function triggerNoise(boost, rawVol) {
+  alertCooldown = true;
+  sceneAlert = true;
+
+  // Dynamic audio boost
+  dynamicBoost(boost);
+
+  // Canvas alert
+  setTimeout(() => { sceneAlert = false; }, 2000);
+
+  // UI updates
+  interceptCount++;
+  totalInterceptCount++;
+  document.getElementById('icCount').textContent = interceptCount;
+  document.getElementById('tCount').textContent = interceptCount;
+  document.getElementById('defRate').textContent = '100%';
+  document.getElementById('defBadge').style.display = '';
+
+  // Log
+  const now = new Date();
+  const boostDb = Math.round(boost * 34);
+  interceptLog.unshift({
+    time: `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`,
+    boost: boostDb,
+    vol: rawVol,
+    hour: now.getHours()
+  });
+  if (interceptLog.length > 50) interceptLog.pop();
+
+  // Waveform flash
+  document.querySelectorAll('.wb').forEach(b => { b.style.background='#ff8844'; b.style.animationDuration='.06s'; });
+  document.getElementById('phLbl').textContent = '噪音拦截！';
+  document.getElementById('phLbl').style.color = '#ff8844';
+
+  showToast();
+  updateProfileStats();
+
+  // Cooldown 3s
+  setTimeout(() => {
+    alertCooldown = false;
+    sceneAlert = false;
+    document.querySelectorAll('.wb').forEach(b => { b.style.background=''; b.style.animationDuration=''; });
+    document.getElementById('phLbl').textContent = '环境安静';
+    document.getElementById('phLbl').style.color = '';
+  }, 3000);
+}
+
+function showToast() {
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+function showToastMsg(msg) {
+  const t = document.getElementById('toast');
+  t.querySelector('.tt').innerHTML = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+/* ═══════════════════════════════════════════════════
+   PLAY / TRACK
+═══════════════════════════════════════════════════ */
+document.getElementById('volSlider').addEventListener('input', function() {
+  const v = this.value;
+  document.getElementById('volDisp').textContent = v + '%';
+  baseGain = v/100;
+  applyVolume(baseGain);
+});
+
+function togglePlay() {
+  isPlaying = !isPlaying;
+  const btn1 = document.getElementById('nowPlayBtn');
+  const btn2 = document.getElementById('slPlayBtn');
+  const ic = document.getElementById('nowIc');
+  btn1.textContent = isPlaying ? '⏸' : '▶';
+  btn2.textContent = isPlaying ? '⏸' : '▶';
+  ic.classList.toggle('off', !isPlaying);
+  applyVolume(isPlaying ? baseGain : 0);
+}
+
+function nextTrack() {
+  selectSound(SOUNDS[(curSound.id+1)%SOUNDS.length]);
+}
+
+function selectSound(s) {
+  curSound = s;
+  isPlaying = true;
+  document.getElementById('nowName').textContent = s.name;
+  document.getElementById('nowSub').textContent = s.desc + ' · 保底模式';
+  document.getElementById('nowIc').textContent = s.icon;
+  document.getElementById('nowIc').classList.remove('off');
+  document.getElementById('nowPlayBtn').textContent = '⏸';
+  document.getElementById('slNowIc').textContent = s.icon;
+  document.getElementById('slNowName').textContent = s.name;
+  document.getElementById('slNowDesc').textContent = s.desc + ' · ' + s.tag + ' · 舷窗联动';
+  document.getElementById('slPlayBtn').textContent = '⏸';
+  document.querySelectorAll('.sc').forEach(c => c.classList.toggle('active', c.dataset.id==s.id));
+  // Re-init audio with new filter
+  if (shelterOn && audioCtx) initAudio();
+}
+
+/* ═══════════════════════════════════════════════════
+   BATTLE REPORT
+═══════════════════════════════════════════════════ */
+function renderReport() {
+  const now = new Date();
+  const days = ['日','一','二','三','四','五','六'];
+  document.getElementById('brDate').textContent = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 · 星期${days[now.getDay()]}`;
+
+  const pct = interceptCount > 0 ? 100 : 0;
+  const ring = document.getElementById('ringF');
+  ring.style.strokeDashoffset = '188';
+  setTimeout(() => ring.style.strokeDashoffset = `${188*(1-pct/100)}`, 80);
+  document.getElementById('ringPct').textContent = pct+'%';
+  document.getElementById('brTitle').textContent = interceptCount>0 ? '绝对防御 · 完美守护' : '待机模式';
+  document.getElementById('brTag').textContent = interceptCount>0 ? '🏆 满分战报' : '— 今日未拦截 —';
+  document.getElementById('brDesc').textContent = interceptCount>0
+    ? `今日共拦截 ${interceptCount} 次突发噪音，声学结界运行中，防御率 100%。`
+    : '开启防空洞后，战报将实时更新。';
+  document.getElementById('br-ic').textContent = interceptCount;
+  document.getElementById('br-rs').textContent = interceptCount>0 ? '< 0.2s' : '—';
+  document.getElementById('br-db').textContent = interceptCount>0 ? `+${Math.min(34,Math.round(interceptCount*1.5+10))}dB` : '—';
+  document.getElementById('br-snd').textContent = curSound.name;
+
+  // Bar chart — buckets by hour
+  const buckets = Array(12).fill(0);
+  interceptLog.forEach(e => { const idx = Math.min(11, Math.floor((e.hour % 12))); buckets[idx]++; });
+  const maxV = Math.max(...buckets,1);
+  const bc = document.getElementById('barCh');
+  bc.innerHTML = '';
+  buckets.forEach((v,i) => {
+    const col = document.createElement('div');
+    col.className = 'bc';
+    const valEl = document.createElement('div'); valEl.className='bc-v'; valEl.textContent = v>0?v:'';
+    const bar = document.createElement('div'); bar.className='bc-b'; bar.style.height='0px';
+    col.appendChild(valEl); col.appendChild(bar); bc.appendChild(col);
+    setTimeout(() => bar.style.height = `${Math.max(2,(v/maxV)*68)}px`, 80+i*30);
+  });
+  // time labels (last 12h)
+  const h0 = now.getHours();
+  ['ch-t0','ch-t1','ch-t2','ch-t3','ch-t4'].forEach((id,i) => {
+    const h = ((h0 - 12 + i*3) + 24)%24;
+    document.getElementById(id).textContent = `${h.toString().padStart(2,'0')}:00`;
+  });
+
+  // Week row
+  const wr = document.getElementById('weekRow');
+  wr.innerHTML = '';
+  const dayNames = ['周一','周二','周三','周四','周五','周六','周日'];
+  const todayIdx = (now.getDay()+6)%7;
+  dayNames.forEach((d,i) => {
+    const isToday = i===todayIdx;
+    const s = isToday ? (interceptCount>0?100:0) : Math.round(80+Math.random()*20);
+    const el = document.createElement('div');
+    el.className='wd'+(isToday?' today':'');
+    el.innerHTML=`<div class="wd-d">${d}</div><div class="wd-s">${isToday?interceptCount+'次':s+'%'}</div><div class="wd-bar" style="width:${isToday?Math.max(5,interceptCount*8):s}%"></div>`;
+    wr.appendChild(el);
+  });
+
+  // Timeline
+  document.getElementById('tlBadge').textContent = `今日 ${interceptCount} 次`;
+  const tl = document.getElementById('timeline');
+  if (!interceptLog.length) {
+    tl.innerHTML = '<div style="text-align:center;color:var(--t3);font-size:.72rem;padding:10px">开启防空洞后，拦截记录将显示在这里</div>';
+    return;
+  }
+  tl.innerHTML = '';
+  interceptLog.slice(0,20).forEach((e,idx) => {
+    const boostDb = e.boost||Math.round(10+Math.random()*24);
+    const item = document.createElement('div'); item.className='tl-item';
+    item.innerHTML = `
+      <div class="tl-dot tl-ok">✓</div>
+      <div>
+        <div class="tl-time">${e.time}</div>
+        <div class="tl-desc">🛡 噪音拦截 · 第 ${interceptCount-idx} 次</div>
+        <div class="tl-detail">音量补偿 +${boostDb}dB · 恢复 2.5s</div>
+      </div>`;
+    tl.appendChild(item);
+  });
+}
+
+function exportReport() {
+  const now = new Date();
+  const content = `自适应声学防空洞 战报
+日期: ${now.toLocaleDateString()}
+拦截次数: ${interceptCount}
+防御成功率: ${interceptCount>0?'100%':'—'}
+使用声音: ${curSound.name}
+${interceptLog.map(e=>`${e.time} | 噪音拦截 | +${e.boost||20}dB`).join('\n')}`;
+  const blob = new Blob([content],{type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `声学防空洞战报-${now.toLocaleDateString().replace(/\//g,'-')}.txt`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ═══════════════════════════════════════════════════
+   SOUND LIBRARY
+═══════════════════════════════════════════════════ */
+function renderSoundLib() {
+  // Build vis waveform
+  const vis = document.getElementById('slVis');
+  if (!vis.children.length) {
+    for (let i=0;i<26;i++) {
+      const b = document.createElement('div'); b.className='slvb';
+      b.style.cssText = `height:${6+Math.random()*26}px;animation-duration:${.35+Math.random()*.55}s;animation-delay:${Math.random()*.4}s`;
+      vis.appendChild(b);
+    }
+  }
+  // Cats
+  const catEl = document.getElementById('sCats');
+  if (!catEl.children.length) {
+    CATS.forEach(c => {
+      const btn = document.createElement('div');
+      btn.className='cat-btn'+(c==='全部'?' on':'');
+      btn.textContent = c;
+      btn.onclick = () => {
+        currentCat=c;
+        document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('on'));
+        btn.classList.add('on');
+        buildSoundGrid();
+      };
+      catEl.appendChild(btn);
+    });
+  }
+  buildSoundGrid();
+}
+
+function filterSounds() { buildSoundGrid(); }
+
+function buildSoundGrid() {
+  const search = (document.getElementById('sSearch').value||'').toLowerCase();
+  const grid = document.getElementById('sGrid');
+  grid.innerHTML = '';
+  SOUNDS.filter(s => {
+    const catOk = currentCat==='全部'||s.cat===currentCat;
+    const srOk = !search||s.name.toLowerCase().includes(search)||s.cat.includes(search)||s.desc.toLowerCase().includes(search);
+    return catOk&&srOk;
+  }).forEach(s => {
+    const c = document.createElement('div');
+    c.className='sc'+(s.id===curSound.id?' active':'');
+    c.dataset.id = s.id;
+    const bars = Array.from({length:14},()=>`<div class="mwb" style="height:${3+Math.random()*26}px;background:${s.id===curSound.id?s.col:'rgba(0,150,170,.35)'};animation-duration:${.35+Math.random()*.55}s;animation-delay:${Math.random()*.4}s"></div>`).join('');
+    c.innerHTML = `
+      <div class="sc-vis">${bars}</div>
+      <div class="sc-name">${s.icon} ${s.name}</div>
+      <div class="sc-desc">${s.desc}</div>
+      <div class="sc-footer">
+        <span class="sc-tag">${s.tag}</span>
+        <div class="sc-play">${s.id===curSound.id&&isPlaying?'⏸':'▶'}</div>
+      </div>`;
+    c.onclick = () => { selectSound(s); buildSoundGrid(); };
+    grid.appendChild(c);
+  });
+}
+
+/* ═══════════════════════════════════════════════════
+   TIMER
+═══════════════════════════════════════════════════ */
+function setTimer(min) {
+  timerTotalSecs = min*60;
+  timerRemSecs = timerTotalSecs;
+  updateTimerDisplay();
+  document.querySelectorAll('.tp').forEach(t => t.classList.toggle('on', parseInt(t.dataset.min)===min));
+}
+
+function setTimerCustom() {
+  const v = parseInt(document.getElementById('customMin').value);
+  if (isNaN(v)||v<1) return;
+  timerTotalSecs = v*60;
+  timerRemSecs = timerTotalSecs;
+  updateTimerDisplay();
+  document.querySelectorAll('.tp').forEach(t=>t.classList.remove('on'));
+}
+
+function updateTimerDisplay() {
+  const h = Math.floor(timerRemSecs/3600);
+  const m = Math.floor((timerRemSecs%3600)/60);
+  const s = timerRemSecs%60;
+  document.getElementById('timerDisp').textContent = h>0
+    ? `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`
+    : `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+  const pct = timerTotalSecs>0 ? (1-timerRemSecs/timerTotalSecs)*100 : 0;
+  document.getElementById('timerBar').style.width = pct+'%';
+}
+
+function startTimer() {
+  if (!timerTotalSecs) { showToastMsg('⏱ 请先选择或设置时长'); return; }
+  if (timerRunning) return;
+  timerRunning = true;
+  timerRemSecs = timerTotalSecs;
+  document.getElementById('timerStartBtn').style.display = 'none';
+  document.getElementById('timerCancelBtn').style.display = '';
+  document.getElementById('timerLbl').textContent = '计时中，到时自动关闭防空洞';
+  timerInterval2 = setInterval(() => {
+    timerRemSecs--;
+    updateTimerDisplay();
+    if (timerRemSecs<=0) {
+      clearInterval(timerInterval2);
+      timerRunning = false;
+      // Auto-stop shelter
+      if (shelterOn) handleToggle();
+      document.getElementById('timerDisp').textContent = '完成！';
+      document.getElementById('timerLbl').textContent = '防空洞已自动关闭';
+      document.getElementById('timerStartBtn').style.display = '';
+      document.getElementById('timerCancelBtn').style.display = 'none';
+      showToastMsg('⏱ 定时结束，防空洞已关闭');
+    }
+  }, 1000);
+}
+
+function cancelTimer() {
+  clearInterval(timerInterval2);
+  timerRunning = false;
+  timerRemSecs = timerTotalSecs;
+  updateTimerDisplay();
+  document.getElementById('timerStartBtn').style.display = '';
+  document.getElementById('timerCancelBtn').style.display = 'none';
+  document.getElementById('timerLbl').textContent = '选择时长，到时自动关闭防空洞';
+}
+
+/* ═══════════════════════════════════════════════════
+   PROFILE
+═══════════════════════════════════════════════════ */
+function updateProfileStats() {
+  document.getElementById('pfTotal').textContent = totalInterceptCount;
+  const totalM = Math.round(totalGuardMs/60000);
+  document.getElementById('pfTime').textContent = totalM>=60 ? Math.floor(totalM/60)+'h' : totalM+'m';
+  document.getElementById('pfRate').textContent = totalInterceptCount>0?'99.4%':'—';
+}
+
+function renderProfile() {
+  updateProfileStats();
+  renderHistory();
+  renderSettings();
+  renderTrackList();
+}
+
+/* UPLOAD */
+function handleUpload(e) {
+  Array.from(e.target.files).forEach(f => {
+    if (!f.type.startsWith('audio/')) return;
+    if (uploadedTracks.find(t=>t.name===f.name)) return;
+    const obj = {name:f.name, size:f.size, dur:'—', url:URL.createObjectURL(f)};
+    uploadedTracks.push(obj);
+    const a = new Audio(); a.src = obj.url;
+    a.onloadedmetadata = () => {
+      const m=Math.floor(a.duration/60), s=Math.floor(a.duration%60);
+      obj.dur = `${m}:${s.toString().padStart(2,'0')}`;
+      renderTrackList();
+    };
+  });
+  renderTrackList();
+  e.target.value='';
+}
+
+function deleteTrack(i) {
+  URL.revokeObjectURL(uploadedTracks[i].url);
+  uploadedTracks.splice(i,1);
+  renderTrackList();
+}
+
+function renderTrackList() {
+  const el = document.getElementById('trackList');
+  if (!uploadedTracks.length) {
+    el.innerHTML='<div class="empty-tip">暂无上传音乐，拖拽或点击上方添加</div>'; return;
+  }
+  el.innerHTML='';
+  uploadedTracks.forEach((t,i) => {
+    const row = document.createElement('div'); row.className='mt';
+    row.innerHTML=`<div class="mt-num">${i+1}</div>
+      <div class="mt-info"><div class="mt-name">🎵 ${t.name}</div><div class="mt-meta">${(t.size/1024/1024).toFixed(1)}MB · 自定义</div></div>
+      <div class="mt-dur">${t.dur}</div>
+      <div class="mt-del" onclick="deleteTrack(${i})">✕</div>`;
+    row.onclick = e => { if (!e.target.classList.contains('mt-del')) playUserTrack(i); };
+    el.appendChild(row);
+  });
+}
+
+function playUserTrack(i) {
+  const t = uploadedTracks[i];
+  document.getElementById('nowName').textContent = t.name.replace(/\.[^.]+$/,'');
+  document.getElementById('nowSub').textContent = '自定义音乐 · 保底模式';
+  document.getElementById('nowIc').textContent = '🎵';
+  showToastMsg(`▶ 正在播放：${t.name}`);
+}
+
+// Drag & drop
+const uplDrop = document.getElementById('uplDrop');
+uplDrop.addEventListener('dragover', e => { e.preventDefault(); uplDrop.classList.add('drag'); });
+uplDrop.addEventListener('dragleave', () => uplDrop.classList.remove('drag'));
+uplDrop.addEventListener('drop', e => {
+  e.preventDefault(); uplDrop.classList.remove('drag');
+  Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('audio/')).forEach(f => {
+    if (!uploadedTracks.find(t=>t.name===f.name)) uploadedTracks.push({name:f.name,size:f.size,dur:'—',url:URL.createObjectURL(f)});
+  });
+  renderTrackList();
+});
+
+function renderHistory() {
+  const hist = [
+    {date:'昨晚',dur:'8h 23m',ic:12,score:'100%',icon:'⭐'},
+    {date:'5月21日',dur:'7h 10m',ic:8,score:'100%',icon:'🌙'},
+    {date:'5月20日',dur:'6h 45m',ic:15,score:'93%',icon:'⚡'},
+    {date:'5月19日',dur:'9h 02m',ic:5,score:'100%',icon:'⭐'},
+    {date:'5月18日',dur:'7h 30m',ic:11,score:'100%',icon:'🌙'},
+  ];
+  const el=document.getElementById('histList'); el.innerHTML='';
+  hist.forEach(h => {
+    const row=document.createElement('div'); row.className='hist-item';
+    row.innerHTML=`<div class="hi-ic">${h.icon}</div><div class="hi-info"><div class="hi-title">${h.date} · 守护 ${h.dur}</div><div class="hi-meta">拦截 ${h.ic} 次 · ${curSound.name}</div></div><div class="hi-score">${h.score}</div>`;
+    el.appendChild(row);
+  });
+}
+
+function renderSettings() {
+  const items=[
+    {ic:'🔔',bg:'rgba(245,166,35,.12)',label:'噪音检测通知',meta:'拦截时震动提醒',toggle:true,on:true},
+    {ic:'🎚',bg:'rgba(0,229,255,.1)',label:'智能音量曲线',meta:'自动平滑过渡',toggle:true,on:true},
+    {ic:'🌙',bg:'rgba(60,0,120,.18)',label:'睡眠模式',meta:'自动降低亮度',toggle:true,on:false},
+    {ic:'📊',bg:'rgba(0,255,136,.08)',label:'每日战报推送',meta:'自动生成战报',toggle:true,on:true},
+    {ic:'🔒',bg:'rgba(255,60,60,.08)',label:'隐私保护',meta:'声音数据不上传',arr:true},
+    {ic:'❓',bg:'rgba(100,100,100,.12)',label:'使用帮助',meta:'新手引导 & FAQ',arr:true},
+  ];
+  const el=document.getElementById('setList'); el.innerHTML='';
+  items.forEach(item => {
+    const row=document.createElement('div'); row.className='set-item';
+    const right=item.toggle
+      ?`<div class="mini-tog${item.on?' on':''}" onclick="this.classList.toggle('on')"></div>`
+      :`<div class="set-arr">›</div>`;
+    row.innerHTML=`<div class="set-ic2" style="background:${item.bg}">${item.ic}</div><div style="flex:1"><div class="set-lbl">${item.label}</div><div class="set-m">${item.meta}</div></div>${right}`;
+    el.appendChild(row);
+  });
+}
+
+/* ═══════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════ */
+window.addEventListener('load', () => {
+  resizeCanvas();
+  drawSea();
+  renderSoundLib();
+  // Init timer display
+  updateTimerDisplay();
+});
+
+window.addEventListener('resize', () => {
+  resizeCanvas();
+});
+
+// Resume AudioContext on user gesture (mobile)
+document.addEventListener('click', () => {
+  if (audioCtx && audioCtx.state==='suspended') audioCtx.resume();
+}, {once:false});
+</script>
+</body>
+</html>
